@@ -1,0 +1,8 @@
+# Copy this into your GitLab compose directory as docker-compose.override.yml,
+# or merge the `image:` line into your existing service definition.
+#
+# Keep your existing hostname, ports, environment, and volumes.
+
+services:
+  gitlab:
+    image: gitlab-skript:local

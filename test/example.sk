@@ -1,0 +1,18 @@
+# Example Skript file for smoke-testing GitLab highlighting.
+
+options:
+    prefix: &8[&aServer&8]
+
+command /spawn:
+    permission: server.spawn
+    trigger:
+        if {spawn} is not set:
+            send "{@prefix} &cSpawn has not been set." to player
+            stop
+
+        teleport player to {spawn}
+        send "{@prefix} <green>Teleported!</green>" to player
+
+on join:
+    wait 1 tick
+    send "&aWelcome, %player%!" to player
