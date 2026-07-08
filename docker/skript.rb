@@ -18,15 +18,16 @@ module Rouge
         rule %r/#.*?$/, Comment::Single
         rule %r/\s+/, Text::Whitespace
 
+        # Skript only has double-quoted strings; apostrophes are possessives
+        # (arg 1's uuid) or contractions (isn't), never string delimiters.
         rule %r/"/, Str::Double, :dq
-        rule %r/'/, Str::Single, :sq
 
         # Minecraft legacy colors, section-sign colors, and common MiniMessage-ish tags.
         rule %r/(?<!\w)(&[0-9a-fk-orA-FK-OR]|§[0-9a-fk-orA-FK-OR]|<\/?[a-z_]+>|<#[0-9a-fA-F]{6}>)/, Str::Escape
 
         # Skript variables:
-        # {foo}, {_local}, {data::%uuid of player%}
-        rule %r/\{[_A-Za-z0-9:.\-% ]+\}/, Name::Variable
+        # {foo}, {_local}, {@option}, {data::%arg 1's uuid%}
+        rule %r/\{/, Name::Variable, :variable
 
         # command /spawn:
         rule %r/\b(command)(\s+)(\/[A-Za-z0-9:_-]+)/i do
@@ -73,13 +74,12 @@ module Rouge
         rule %r/./, Str::Double
       end
 
-      state :sq do
-        rule %r/\\[\\']/, Str::Escape
+      state :variable do
+        rule %r/\}/, Name::Variable, :pop!
         rule %r/%[^%\n]+%/, Str::Interpol
-        rule %r/(?<!\w)(&[0-9a-fk-orA-FK-OR]|§[0-9a-fk-orA-FK-OR]|<\/?[a-z_]+>|<#[0-9a-fA-F]{6}>)/, Str::Escape
-        rule %r/'/, Str::Single, :pop!
-        rule %r/[^\\%'&§<]+/, Str::Single
-        rule %r/./, Str::Single
+        rule %r/\n/, Text::Whitespace, :pop!
+        rule %r/[^%}\n]+/, Name::Variable
+        rule %r/./, Name::Variable
       end
     end
   end
