@@ -1,14 +1,16 @@
 # GitLab Skript Syntax Highlighting Patch
 
-This package adds a first-pass [Rouge](https://rouge-ruby.github.io/) lexer for Skript `.sk` files to a self-managed GitLab Docker image.
+This package adds a first-pass [Rouge](https://rouge-ruby.github.io/) lexer and a [Linguist](https://github.com/github-linguist/linguist) language entry for Skript `.sk` files to a self-managed GitLab Docker image.
 
 It is meant for **self-managed GitLab running in Docker**. It is not usable on GitLab.com.
 
 ## What this patches
 
-The Dockerfile copies a custom `skript.rb` lexer into GitLab's bundled Rouge gem and adds a Rails initializer that loads it during GitLab boot.
+The Dockerfile copies a custom `skript.rb` lexer into GitLab's bundled Rouge gem and adds a Rails initializer that loads it during GitLab boot. That handles syntax highlighting.
 
 This targets GitLab's server-side highlighting path first: repository files, diffs, merge requests, commits, compare, and blame.
+
+The Dockerfile also patches GitLab's bundled `github-linguist` gem so `.sk` files are detected as `Skript` for repository language statistics, including the colored language bar and percentages on the project overview.
 
 It does **not** patch GitLab's frontend Highlight.js/Monaco bundles yet, so the Web IDE and some client-side-only views may not use this lexer.
 
@@ -20,6 +22,7 @@ gitlab-skript-highlight/
 ├── README.md
 ├── docker/
 │   ├── skript.rb
+│   ├── patch_linguist_skript.rb
 │   └── zz_skript_rouge.rb
 ├── gitlab/
 │   └── docker-compose.override.example.yml
@@ -111,7 +114,7 @@ Keep your existing volume mounts for:
 Add this to each Skript repository as `.gitattributes`:
 
 ```gitattributes
-*.sk gitlab-language=skript
+*.sk gitlab-language=skript linguist-language=Skript
 ```
 
 A ready-made copy is included at:
@@ -120,7 +123,12 @@ A ready-made copy is included at:
 project/.gitattributes
 ```
 
-In most cases, `.sk` should also be detected by filename because the lexer declares `filenames "*.sk"`, but `.gitattributes` makes the intent explicit.
+In most cases, `.sk` should be detected automatically after this patch:
+
+- Rouge declares `filenames "*.sk"` for highlighting.
+- Linguist registers `.sk` as `Skript` for repository language statistics.
+
+The `.gitattributes` line makes both GitLab-specific highlighting and Linguist language statistics explicit.
 
 ## Smoke test
 
@@ -140,6 +148,7 @@ Expected output should include:
 
 ```text
 Found lexer: Skript
+Found Linguist language: Skript
 ```
 
 ## Quick temporary install into a running container
@@ -214,7 +223,7 @@ lib/rouge/lexers
 Make sure the repo has:
 
 ```gitattributes
-*.sk gitlab-language=skript
+*.sk gitlab-language=skript linguist-language=Skript
 ```
 
 Then commit and push the file.
@@ -224,6 +233,16 @@ Also try clearing Rails caches or restarting GitLab services:
 ```bash
 docker exec -it gitlab gitlab-ctl restart puma sidekiq
 ```
+
+### Language percentages still do not show Skript
+
+Make sure the repo has:
+
+```gitattributes
+*.sk gitlab-language=skript linguist-language=Skript
+```
+
+Then commit and push the file. GitLab may cache repository language statistics, so give Sidekiq time to recalculate or restart GitLab services after installing the patch.
 
 ### Web IDE still has no Skript highlighting
 

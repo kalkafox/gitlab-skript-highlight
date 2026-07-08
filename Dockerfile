@@ -14,6 +14,7 @@ LABEL org.opencontainers.image.description="Adds a Rouge lexer for Skript .sk fi
 
 COPY docker/skript.rb /tmp/skript.rb
 COPY docker/zz_skript_rouge.rb /tmp/zz_skript_rouge.rb
+COPY docker/patch_linguist_skript.rb /tmp/patch_linguist_skript.rb
 
 RUN set -eux; \
     ROUGE_LEXER_DIR="$( \
@@ -22,4 +23,6 @@ RUN set -eux; \
     )"; \
     cp /tmp/skript.rb "$ROUGE_LEXER_DIR/skript.rb"; \
     cp /tmp/zz_skript_rouge.rb /opt/gitlab/embedded/service/gitlab-rails/config/initializers/zz_skript_rouge.rb; \
-    /opt/gitlab/embedded/bin/ruby -e 'require "rouge"; require "rouge/lexers/skript"; abort "Skript lexer did not register" unless Rouge::Lexer.find("skript"); puts "Registered #{Rouge::Lexer.find("skript").title}"'
+    /opt/gitlab/embedded/bin/ruby /tmp/patch_linguist_skript.rb; \
+    /opt/gitlab/embedded/bin/ruby -e 'require "rouge"; require "rouge/lexers/skript"; abort "Skript lexer did not register" unless Rouge::Lexer.find("skript"); puts "Registered #{Rouge::Lexer.find("skript").title}"'; \
+    /opt/gitlab/embedded/bin/ruby -e 'require "linguist"; language = Linguist::Language.find_by_name("Skript"); abort "Skript language did not register" unless language; abort "Skript .sk extension did not register" unless Linguist::Language.find_by_extension("example.sk").include?(language); puts "Registered Linguist language: #{language.name}"'
