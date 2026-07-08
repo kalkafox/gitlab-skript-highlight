@@ -4,7 +4,12 @@ set -euo pipefail
 CONTAINER_NAME="${CONTAINER_NAME:-gitlab}"
 GITLAB_IMAGE="${GITLAB_IMAGE:-}"
 OUTPUT_IMAGE="${OUTPUT_IMAGE:-gitlab-skript:local}"
-BUILDX_OUTPUT="${BUILDX_OUTPUT:---load}"
+BUILDX_OUTPUT="${BUILDX_OUTPUT:-type=docker}"
+
+if ! docker buildx version >/dev/null 2>&1; then
+  echo "Docker buildx is not available. Install or enable the Docker Buildx plugin, then rerun this script." >&2
+  exit 1
+fi
 
 if [[ -z "${GITLAB_IMAGE}" ]]; then
   if docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
@@ -22,7 +27,7 @@ echo "Buildx output:     ${BUILDX_OUTPUT}"
 
 buildx_output_args=()
 if [[ -n "${BUILDX_OUTPUT}" ]]; then
-  buildx_output_args+=("${BUILDX_OUTPUT}")
+  buildx_output_args+=(--output "${BUILDX_OUTPUT}")
 fi
 
 docker buildx build \

@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 #
 # Build with your exact current GitLab image tag, for example:
-#   docker buildx build --load --build-arg GITLAB_IMAGE=gitlab/gitlab-ee:18.10.1-ee.0 -t gitlab-ee-skript:18.10.1 .
+#   docker buildx build --output type=docker --build-arg GITLAB_IMAGE=gitlab/gitlab-ee:18.10.1-ee.0 -t gitlab-ee-skript:18.10.1 .
 #
 # You can also use CE:
-#   docker buildx build --load --build-arg GITLAB_IMAGE=gitlab/gitlab-ce:<version>-ce.0 -t gitlab-ce-skript:<version> .
+#   docker buildx build --output type=docker --build-arg GITLAB_IMAGE=gitlab/gitlab-ce:<version>-ce.0 -t gitlab-ce-skript:<version> .
 
 ARG GITLAB_IMAGE=gitlab/gitlab-ee:latest
 FROM ${GITLAB_IMAGE}

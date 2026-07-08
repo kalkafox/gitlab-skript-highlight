@@ -38,7 +38,7 @@ gitlab-skript-highlight/
 
 ## Recommended install: custom image
 
-This uses `docker buildx build --load` so the patched image is loaded into the local Docker image store after the build.
+This uses `docker buildx build --output type=docker` so the patched image is loaded into the local Docker image store after the build.
 
 From this package directory:
 
@@ -56,7 +56,7 @@ gitlab-skript:local
 To use another buildx output mode, set `BUILDX_OUTPUT`, for example:
 
 ```bash
-BUILDX_OUTPUT=--push \
+BUILDX_OUTPUT=type=registry,push=true \
 GITLAB_IMAGE=gitlab/gitlab-ee:18.10.1-ee.0 \
 OUTPUT_IMAGE=registry.example.com/gitlab-ee-skript:18.10.1 \
 ./scripts/build.sh
