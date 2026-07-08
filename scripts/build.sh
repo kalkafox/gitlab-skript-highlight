@@ -4,6 +4,7 @@ set -euo pipefail
 CONTAINER_NAME="${CONTAINER_NAME:-gitlab}"
 GITLAB_IMAGE="${GITLAB_IMAGE:-}"
 OUTPUT_IMAGE="${OUTPUT_IMAGE:-gitlab-skript:local}"
+BUILDX_OUTPUT="${BUILDX_OUTPUT:---load}"
 
 if [[ -z "${GITLAB_IMAGE}" ]]; then
   if docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
@@ -17,8 +18,15 @@ fi
 
 echo "Base GitLab image: ${GITLAB_IMAGE}"
 echo "Output image:      ${OUTPUT_IMAGE}"
+echo "Buildx output:     ${BUILDX_OUTPUT}"
 
-docker build \
+buildx_output_args=()
+if [[ -n "${BUILDX_OUTPUT}" ]]; then
+  buildx_output_args+=("${BUILDX_OUTPUT}")
+fi
+
+docker buildx build \
+  "${buildx_output_args[@]}" \
   --build-arg "GITLAB_IMAGE=${GITLAB_IMAGE}" \
   -t "${OUTPUT_IMAGE}" \
   .
